@@ -1,0 +1,6 @@
+#!/bin/bash
+export GOOGLE_APPLICATION_CREDENTIALS="<path_to_owner_json_file>"
+export DATABASE_USER="<username>"
+export DATABASE_PASSWORD="<password>"
+$(dirname $0)/cloud_sql_proxy -instances="<project-name>:<zone>:<app-name>"=tcp:5432& 
+

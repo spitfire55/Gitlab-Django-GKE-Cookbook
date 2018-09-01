@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: gitlab-runner
+    namespace: appname-testing
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            name: gitlab-runner
+    template:
+        metadata:
+            labels:
+                name: gitlab-runner
+        spec:
+            containers:
+              - name: gitlab-runner
+                image: gitlab/gitlab-runner:latest
+                args:
+                  - run
+                volumeMounts:
+                  - mountPath: /etc/gitlab-runner
+                    name: config
+                  - mountPath: /etc/ssl/certs
+                    name: cacerts
+                    readOnly: true
+            volumes:
+              - name: cacerts
+                hostPath:
+                  path: /var/mozilla
+              - name: config
+                emptyDir: {}

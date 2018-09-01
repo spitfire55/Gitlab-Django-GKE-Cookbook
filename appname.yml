@@ -1,0 +1,54 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+    name: appname 
+    namespace: appname-testing
+    labels:
+        app: appname
+spec:
+    replicas: 3
+    template:
+        metadata:
+            labels:
+                app: appname 
+        spec:
+            containers:
+            - name: appname
+              image: gcr.io/project-name/appname:latest
+              imagePullPolicy: Always
+              env:
+                  - name: DATABASE_USER
+                    valueFrom:
+                        secretKeyRef:
+                            name: cloudsql
+                            key: username
+                  - name: DATABASE_PASSWORD
+                    valueFrom:
+                        secretKeyRef:
+                            name: cloudsql
+                            key: password
+              ports:
+              - containerPort: 8080
+            
+            - name: cloudsql-proxy
+              image: b.gcr.io/cloudsql-docker/gce-proxy:latest
+              command: ["/cloud_sql_proxy", "--dir=cloudsql",
+                        "-instances=<project-name>:<zone>:<appname>=tcp:5432",
+                        "-credential_file=/secrets/cloudsql/credentials.json"]
+              volumeMounts:
+                  - name: cloudsql-oauth-credentials
+                    mountPath: /secrets/cloudsql
+                    readOnly: true
+                  - name: ssl-certs
+                    mountPath: /etc/ssl/certs
+                  - name: cloudsql
+                    mountPath: /cloudsql
+            volumes:
+                - name: cloudsql-oauth-credentials
+                  secret:
+                      secretName: cloudsql-oauth-credentials
+                - name: ssl-certs
+                  hostPath:
+                      path: /etc/ssl/certs
+                - name: cloudsql
+                  emptyDir: 
